@@ -23,6 +23,9 @@ import {
 	ScrollLock,
 	Popover,
 	FocusReturnProvider,
+	withConstrainedTabbing,
+	withFocusReturn,
+	withFocusOutside,
 } from '@wordpress/components';
 import { useViewportMatch } from '@wordpress/compose';
 import { PluginArea } from '@wordpress/plugins';
@@ -32,7 +35,12 @@ import {
 	FullscreenMode,
 	InterfaceSkeleton,
 } from '@wordpress/interface';
-import { useState, useEffect, useCallback } from '@wordpress/element';
+import {
+	useState,
+	useEffect,
+	useCallback,
+	Component,
+} from '@wordpress/element';
 import { close } from '@wordpress/icons';
 
 /**
@@ -64,6 +72,22 @@ const interfaceLabels = {
 	/* translators: accessibility text for the editor footer landmark region. */
 	footer: __( 'Editor footer' ),
 };
+
+const DetectOutside = withFocusOutside(
+	class extends Component {
+		handleFocusOutside( event ) {
+			this.props.onFocusOutside( event );
+		}
+
+		render() {
+			return this.props.children;
+		}
+	}
+);
+
+const FocusManaged = withConstrainedTabbing(
+	withFocusReturn( ( { children } ) => children )
+);
 
 function Layout() {
 	const isMobileViewport = useViewportMatch( 'medium', '<' );
@@ -178,29 +202,39 @@ function Layout() {
 					leftSidebar={
 						mode === 'visual' &&
 						isInserterOpened && (
-							<div className="edit-post-layout__inserter-panel">
-								<div className="edit-post-layout__inserter-panel-header">
-									<Button
-										icon={ close }
-										onClick={ () =>
-											setIsInserterOpened( false )
-										}
-									/>
-								</div>
-								<div className="edit-post-layout__inserter-panel-content">
-									<Library
-										showMostUsedBlocks={
-											showMostUsedBlocks
-										}
-										showInserterHelpPanel
-										onSelect={ () => {
-											if ( isMobileViewport ) {
-												setIsInserterOpened( false );
-											}
-										} }
-									/>
-								</div>
-							</div>
+							<DetectOutside
+								onFocusOutside={ () =>
+									setIsInserterOpened( false )
+								}
+							>
+								<FocusManaged>
+									<div className="edit-post-layout__inserter-panel">
+										<div className="edit-post-layout__inserter-panel-header">
+											<Button
+												icon={ close }
+												onClick={ () =>
+													setIsInserterOpened( false )
+												}
+											/>
+										</div>
+										<div className="edit-post-layout__inserter-panel-content">
+											<Library
+												showMostUsedBlocks={
+													showMostUsedBlocks
+												}
+												showInserterHelpPanel
+												onSelect={ () => {
+													if ( isMobileViewport ) {
+														setIsInserterOpened(
+															false
+														);
+													}
+												} }
+											/>
+										</div>
+									</div>
+								</FocusManaged>
+							</DetectOutside>
 						)
 					}
 					sidebar={
