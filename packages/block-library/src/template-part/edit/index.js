@@ -96,9 +96,9 @@ const TemplatePartEditor = ( {
 } ) => {
 	const hasBeenSelectedRef = useRef( false );
 	const { createWarningNotice, removeNotice } = useDispatch( 'core/notices' );
-	const { toggleFeature } = useDispatch( 'core/edit-site' );
+	const { toggleFeature } = useDispatch( 'core/edit-site' ) || {};
 	const isFocusModeActive = useSelect( ( select ) =>
-		select( 'core/edit-site' ).isFeatureActive( 'focusMode' )
+		select( 'core/edit-site' )?.isFeatureActive( 'focusMode' )
 	);
 
 	useEffect( () => {
@@ -120,7 +120,7 @@ const TemplatePartEditor = ( {
 				}
 			);
 			// Enable spotlight mode in site editor.
-			if ( ! isFocusModeActive ) {
+			if ( isFocusModeActive === false ) {
 				toggleFeature( 'focusMode' );
 			}
 		}
@@ -136,9 +136,9 @@ const TemplatePartEditor = ( {
 			}
 		}
 		// Ensure spotlight mode is on when a Template Part is selected.
-		// Without this if we select footer then select header focus mode will not be on.
+		// Without this if we select footer then select header focus mode will be turned off.
 		else if (
-			! isFocusModeActive &&
+			isFocusModeActive === false &&
 			( isSelected || hasSelectedInnerBlock )
 		) {
 			toggleFeature( 'focusMode' );
